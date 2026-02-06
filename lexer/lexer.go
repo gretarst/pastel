@@ -10,10 +10,12 @@ type Lexer struct {
 	position     int
 	readPosition int
 	ch           byte
+	line         int
+	column       int
 }
 
 func New(input string) *Lexer {
-	l := &Lexer{input: input}
+	l := &Lexer{input: input, line: 1, column: 0}
 	l.readChar()
 	return l
 }
@@ -26,6 +28,13 @@ func (l *Lexer) readChar() {
 	}
 	l.position = l.readPosition
 	l.readPosition += 1
+
+	if l.ch == '\n' {
+		l.line++
+		l.column = 0
+	} else {
+		l.column++
+	}
 }
 
 func (l *Lexer) Ch() byte {
@@ -40,8 +49,8 @@ func (l *Lexer) peekChar() byte {
 	}
 }
 
-func newToken(tokenType token.TokenType, ch byte) token.Token {
-	return token.Token{Type: tokenType, Literal: string(ch)}
+func (l *Lexer) newTokenWithPos(tokenType token.TokenType, ch byte, line, column int) token.Token {
+	return token.Token{Type: tokenType, Literal: string(ch), Line: line, Column: column}
 }
 
 func (l *Lexer) skipWhitespace() {
@@ -76,16 +85,21 @@ func (l *Lexer) readNumber() string {
 
 func (l *Lexer) NextToken() token.Token {
 	l.skipWhitespace()
+
+	// Store position before reading token
+	line := l.line
+	col := l.column
+
 	// FIRST: letters (identifiers and keywords)
 	if isLetter(l.ch) {
 		literal := l.readIdentifier()
 		tokType := token.LookupIdent(literal)
-		return token.Token{Type: tokType, Literal: literal}
+		return token.Token{Type: tokType, Literal: literal, Line: line, Column: col}
 	}
 
 	// SECOND: numbers
 	if isDigit(l.ch) {
-		return token.Token{Type: token.INT, Literal: l.readNumber()}
+		return token.Token{Type: token.INT, Literal: l.readNumber(), Line: line, Column: col}
 	}
 
 	var tok token.Token
@@ -95,31 +109,32 @@ func (l *Lexer) NextToken() token.Token {
 			ch := l.ch
 			l.readChar()
 			literal := string(ch) + string(l.ch)
-			tok = token.Token{Type: token.ASSIGN, Literal: literal}
+			tok = token.Token{Type: token.ASSIGN, Literal: literal, Line: line, Column: col}
 		} else {
-			tok = newToken(token.COLON, l.ch)
+			tok = l.newTokenWithPos(token.COLON, l.ch, line, col)
 		}
 	case ';':
-		tok = newToken(token.SEMICOLON, l.ch)
+		tok = l.newTokenWithPos(token.SEMICOLON, l.ch, line, col)
+	case ',':
+		tok = l.newTokenWithPos(token.COMMA, l.ch, line, col)
 	case '+':
-		tok = newToken(token.PLUS, l.ch)
+		tok = l.newTokenWithPos(token.PLUS, l.ch, line, col)
 	case '-':
-		tok = newToken(token.MINUS, l.ch)
+		tok = l.newTokenWithPos(token.MINUS, l.ch, line, col)
 	case '*':
-		tok = newToken(token.STAR, l.ch)
+		tok = l.newTokenWithPos(token.STAR, l.ch, line, col)
 	case '/':
-		tok = newToken(token.SLASH, l.ch)
+		tok = l.newTokenWithPos(token.SLASH, l.ch, line, col)
 	case '(':
-		tok = newToken(token.LPAREN, l.ch)
+		tok = l.newTokenWithPos(token.LPAREN, l.ch, line, col)
 	case ')':
-		tok = newToken(token.RPAREN, l.ch)
+		tok = l.newTokenWithPos(token.RPAREN, l.ch, line, col)
 	case '.':
-		tok = newToken(token.DOT, l.ch)
+		tok = l.newTokenWithPos(token.DOT, l.ch, line, col)
 	case 0:
-		tok.Literal = ""
-		tok.Type = token.EOF
+		tok = token.Token{Type: token.EOF, Literal: "", Line: line, Column: col}
 	default:
-		tok = newToken(token.ILLEGAL, l.ch)
+		tok = l.newTokenWithPos(token.ILLEGAL, l.ch, line, col)
 	}
 	l.readChar()
 	return tok

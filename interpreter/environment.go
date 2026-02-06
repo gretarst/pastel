@@ -4,7 +4,7 @@ type Environment struct {
 	store map[string]int
 }
 
-func NewEnviroment() *Environment {
+func NewEnvironment() *Environment {
 	return &Environment{store: make(map[string]int)}
 }
 

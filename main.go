@@ -9,20 +9,19 @@ import (
 )
 
 func main() {
-	var input string
-
-	if len(os.Args) > 1 {
-		filename := os.Args[1]
-		data, err := os.ReadFile(filename)
-
-		if err != nil {
-			panic("Failed to read source file")
-		}
-
-		input = string(data)
-	} else {
-		panic("Please provide source file")
+	if len(os.Args) < 2 {
+		fmt.Fprintln(os.Stderr, "Usage: pastel <source-file>")
+		os.Exit(1)
 	}
+
+	filename := os.Args[1]
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
+		os.Exit(1)
+	}
+
+	input := string(data)
 
 	// Step 1: Lexical analysis
 	l := lexer.New(input)
@@ -40,16 +39,14 @@ func main() {
 		return
 	}
 
-	// Step 4: Create a new environment for interpretation
-	env := interpreter.NewEnviroment()
-
-	// Step 5: Interpret the program
-	if err := interpreter.EvalProgram(prog, env); err != nil {
+	// Step 4: Create interpreter and run the program
+	interp := interpreter.New()
+	if err := interp.Run(prog); err != nil {
 		fmt.Println("Runtime error encountered:")
 		fmt.Println(err.Error())
 		return
 	}
 
-	// Step 6: Successful execution
+	// Step 5: Successful execution
 	fmt.Println("Program executed successfully.")
 }

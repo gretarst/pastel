@@ -2,30 +2,40 @@ package interpreter
 
 import (
 	"fmt"
-	"pastel/parser"
+	"pastel/ast"
 	"pastel/token"
 )
 
-// EvalProgram evaluates the entire Pascal program.
-func EvalProgram(prog *parser.Program, env *Environment) error {
+// Interpreter holds the state for program execution.
+type Interpreter struct {
+	env *Environment
+}
+
+// New creates a new Interpreter instance with a fresh environment.
+func New() *Interpreter {
+	return &Interpreter{env: NewEnvironment()}
+}
+
+// Run executes a Pascal program.
+func (i *Interpreter) Run(prog *ast.Program) error {
 	for _, decl := range prog.Declarations {
-		if v, ok := decl.(*parser.VarDecl); ok {
-			env.Set(v.Name, 0) // default value is 0
+		if v, ok := decl.(*ast.VarDecl); ok {
+			i.env.Set(v.Name, 0) // default value is 0
 		}
 	}
 
-	if err := EvalStmt(prog.Main, env); err != nil {
+	if err := i.evalStmt(prog.Main); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// EvalStmt evaluates a single statement.
-func EvalStmt(stmt parser.Stmt, env *Environment) error {
+// evalStmt evaluates a single statement.
+func (i *Interpreter) evalStmt(stmt ast.Stmt) error {
 	switch s := stmt.(type) {
-	case *parser.AssignStmt:
-		if !env.Exists(s.Name) {
+	case *ast.AssignStmt:
+		if !i.env.Exists(s.Name) {
 			return &PascalError{
 				Msg:    fmt.Sprintf("Undeclared variable '%s'", s.Name),
 				Detail: "This variable is being used but was never declared with a type.",
@@ -33,21 +43,21 @@ func EvalStmt(stmt parser.Stmt, env *Environment) error {
 			}
 		}
 
-		val, err := EvalExpr(s.Value, env)
+		val, err := i.evalExpr(s.Value)
 		if err != nil {
 			return err
 		}
-		env.Set(s.Name, val)
+		i.env.Set(s.Name, val)
 
-	case *parser.CompoundStmt:
+	case *ast.CompoundStmt:
 		for _, stmt := range s.Statements {
-			if err := EvalStmt(stmt, env); err != nil {
+			if err := i.evalStmt(stmt); err != nil {
 				return err
 			}
 		}
 
-	case *parser.PrintStmt:
-		val, err := EvalExpr(s.Argument, env)
+	case *ast.PrintStmt:
+		val, err := i.evalExpr(s.Argument)
 		if err != nil {
 			return err
 		}
@@ -64,19 +74,19 @@ func EvalStmt(stmt parser.Stmt, env *Environment) error {
 	return nil
 }
 
-// EvalExpr evaluates an expression and returns its integer value.
-func EvalExpr(expr parser.Expr, env *Environment) (int, error) {
+// evalExpr evaluates an expression and returns its integer value.
+func (i *Interpreter) evalExpr(expr ast.Expr) (int, error) {
 	switch e := expr.(type) {
-	case *parser.IntegerLiteral:
+	case *ast.IntegerLiteral:
 		return e.Value, nil
 
-	case *parser.BinaryExpr:
-		left, err := EvalExpr(e.Left, env)
+	case *ast.BinaryExpr:
+		left, err := i.evalExpr(e.Left)
 		if err != nil {
 			return 0, err
 		}
 
-		right, err := EvalExpr(e.Right, env)
+		right, err := i.evalExpr(e.Right)
 		if err != nil {
 			return 0, err
 		}
@@ -105,8 +115,8 @@ func EvalExpr(expr parser.Expr, env *Environment) (int, error) {
 			}
 		}
 
-	case *parser.Identifier:
-		val, ok := env.Get(e.Value)
+	case *ast.Identifier:
+		val, ok := i.env.Get(e.Value)
 		if !ok {
 			return 0, &PascalError{
 				Msg:    fmt.Sprintf("Undefined variable '%s'", e.Value),

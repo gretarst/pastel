@@ -1,0 +1,56 @@
+---
+description: Go code quality — idiomatic style, minimal comments, clear naming, declarative where pragmatic
+globs: **/*.go
+alwaysApply: false
+---
+
+# Go Code Quality
+
+## Idiomatic Go
+
+- Prefer short names in small scopes (`i`, `err`, `ctx`); longer, descriptive names for package-level and exported symbols.
+- Return errors; don’t swallow them. Use `fmt.Errorf("context: %w", err)` for wrapping.
+- Use the zero value: e.g. `var buf bytes.Buffer` instead of `buf := bytes.NewBuffer(nil)` when the zero value is correct.
+- Prefer `for range` over index-based loops when the index isn’t needed.
+- Keep functions small and focused; extract helpers when logic grows.
+
+## Comments
+
+- **Only add comments for exported functions, types, and package-level declarations.** Use a short, complete-sentence doc comment (e.g. `// ParseExpr returns ...`).
+- **No comments for unexported code.** Names and structure should make behavior clear. If you need a comment to explain unexported code, improve the name or split the function.
+
+```go
+// ParseExpr parses a single expression from the input and returns the AST node or an error.
+func ParseExpr(p *Parser) (ast.Expr, error) { ... }
+
+func parsePrimary(p *Parser) (ast.Expr, error) {
+    // no comment here; name and code are enough
+    ...
+}
+```
+
+## Naming
+
+- Names must clearly convey purpose. Avoid generic names (`data`, `info`, `handler`) unless the type or context makes meaning obvious.
+- Booleans: use `is`, `has`, `can`, `should` (e.g. `isValid`, `hasNext`).
+- Functions that return a single value: noun-like names or `ParseX`, `LoadX`; predicate functions can be `IsX`, `HasX`.
+
+## Declarative Within Pragmatism
+
+- Prefer expressions and small, well-named functions over long procedural blocks. Code should read like “what” is done; implementation details live in helpers.
+- Use early returns to reduce nesting and keep the happy path obvious.
+- Prefer table-driven tests and small, composable functions over one large “do everything” function.
+- Stay within Go idioms: avoid over-abstraction, magic, or patterns that fight the language. Declarative style means clear control flow and named steps, not DSLs or heavy indirection.
+
+```go
+// More declarative: named steps, early return
+func (e *Env) resolve(name string) (Object, bool) {
+    if obj, ok := e.store[name]; ok {
+        return obj, true
+    }
+    if e.outer != nil {
+        return e.outer.resolve(name)
+    }
+    return nil, false
+}
+```
