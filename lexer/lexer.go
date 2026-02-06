@@ -75,12 +75,31 @@ func isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
 }
 
-func (l *Lexer) readNumber() string {
+func (l *Lexer) readNumber() (string, bool) {
 	start := l.position
+	isReal := false
 	for isDigit(l.ch) {
 		l.readChar()
 	}
-	return l.input[start:l.position]
+	if l.ch == '.' && isDigit(l.peekChar()) {
+		isReal = true
+		l.readChar()
+		for isDigit(l.ch) {
+			l.readChar()
+		}
+	}
+	return l.input[start:l.position], isReal
+}
+
+func (l *Lexer) readString() string {
+	l.readChar()
+	start := l.position
+	for l.ch != '\'' && l.ch != 0 {
+		l.readChar()
+	}
+	str := l.input[start:l.position]
+	l.readChar()
+	return str
 }
 
 func (l *Lexer) NextToken() token.Token {
@@ -99,7 +118,20 @@ func (l *Lexer) NextToken() token.Token {
 
 	// SECOND: numbers
 	if isDigit(l.ch) {
-		return token.Token{Type: token.INT, Literal: l.readNumber(), Line: line, Column: col}
+		literal, isReal := l.readNumber()
+		if isReal {
+			return token.Token{Type: token.REAL_LIT, Literal: literal, Line: line, Column: col}
+		}
+		return token.Token{Type: token.INT, Literal: literal, Line: line, Column: col}
+	}
+
+	// THIRD: string/char literals
+	if l.ch == '\'' {
+		literal := l.readString()
+		if len(literal) == 1 {
+			return token.Token{Type: token.CHAR_LIT, Literal: literal, Line: line, Column: col}
+		}
+		return token.Token{Type: token.STRING_LIT, Literal: literal, Line: line, Column: col}
 	}
 
 	var tok token.Token

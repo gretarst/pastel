@@ -399,3 +399,208 @@ func checkParserErrors(t *testing.T, p *Parser) {
 	}
 	t.FailNow()
 }
+
+func TestParser_RealTypeDeclaration(t *testing.T) {
+	input := `program test;
+var x: real;
+begin
+  x := 3.14;
+end.`
+
+	l := lexer.New(input)
+	p := New(l)
+	prog := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(prog.Declarations) != 1 {
+		t.Fatalf("expected 1 declaration, got %d", len(prog.Declarations))
+	}
+
+	decl, ok := prog.Declarations[0].(*ast.VarDecl)
+	if !ok {
+		t.Fatalf("expected VarDecl, got %T", prog.Declarations[0])
+	}
+
+	if decl.Type != "real" {
+		t.Fatalf("expected type 'real', got %q", decl.Type)
+	}
+}
+
+func TestParser_BooleanTypeDeclaration(t *testing.T) {
+	input := `program test;
+var b: boolean;
+begin
+  b := true;
+end.`
+
+	l := lexer.New(input)
+	p := New(l)
+	prog := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(prog.Declarations) != 1 {
+		t.Fatalf("expected 1 declaration, got %d", len(prog.Declarations))
+	}
+
+	decl, ok := prog.Declarations[0].(*ast.VarDecl)
+	if !ok {
+		t.Fatalf("expected VarDecl, got %T", prog.Declarations[0])
+	}
+
+	if decl.Type != "boolean" {
+		t.Fatalf("expected type 'boolean', got %q", decl.Type)
+	}
+}
+
+func TestParser_StringTypeDeclaration(t *testing.T) {
+	input := `program test;
+var s: string;
+begin
+  s := 'hello';
+end.`
+
+	l := lexer.New(input)
+	p := New(l)
+	prog := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(prog.Declarations) != 1 {
+		t.Fatalf("expected 1 declaration, got %d", len(prog.Declarations))
+	}
+
+	decl, ok := prog.Declarations[0].(*ast.VarDecl)
+	if !ok {
+		t.Fatalf("expected VarDecl, got %T", prog.Declarations[0])
+	}
+
+	if decl.Type != "string" {
+		t.Fatalf("expected type 'string', got %q", decl.Type)
+	}
+}
+
+func TestParser_CharTypeDeclaration(t *testing.T) {
+	input := `program test;
+var c: char;
+begin
+  c := 'A';
+end.`
+
+	l := lexer.New(input)
+	p := New(l)
+	prog := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(prog.Declarations) != 1 {
+		t.Fatalf("expected 1 declaration, got %d", len(prog.Declarations))
+	}
+
+	decl, ok := prog.Declarations[0].(*ast.VarDecl)
+	if !ok {
+		t.Fatalf("expected VarDecl, got %T", prog.Declarations[0])
+	}
+
+	if decl.Type != "char" {
+		t.Fatalf("expected type 'char', got %q", decl.Type)
+	}
+}
+
+func TestParser_RealLiteral(t *testing.T) {
+	input := `program test;
+var x: real;
+begin
+  x := 3.14159;
+end.`
+
+	l := lexer.New(input)
+	p := New(l)
+	prog := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	assign := prog.Main.Statements[0].(*ast.AssignStmt)
+	lit, ok := assign.Value.(*ast.RealLiteral)
+	if !ok {
+		t.Fatalf("expected RealLiteral, got %T", assign.Value)
+	}
+
+	if lit.Value != 3.14159 {
+		t.Fatalf("expected 3.14159, got %f", lit.Value)
+	}
+}
+
+func TestParser_BooleanLiterals(t *testing.T) {
+	input := `program test;
+var b: boolean;
+begin
+  b := true;
+  b := false;
+end.`
+
+	l := lexer.New(input)
+	p := New(l)
+	prog := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	assign1 := prog.Main.Statements[0].(*ast.AssignStmt)
+	lit1, ok := assign1.Value.(*ast.BooleanLiteral)
+	if !ok {
+		t.Fatalf("expected BooleanLiteral, got %T", assign1.Value)
+	}
+	if lit1.Value != true {
+		t.Fatalf("expected true, got false")
+	}
+
+	assign2 := prog.Main.Statements[1].(*ast.AssignStmt)
+	lit2, ok := assign2.Value.(*ast.BooleanLiteral)
+	if !ok {
+		t.Fatalf("expected BooleanLiteral, got %T", assign2.Value)
+	}
+	if lit2.Value != false {
+		t.Fatalf("expected false, got true")
+	}
+}
+
+func TestParser_StringLiteral(t *testing.T) {
+	input := `program test;
+var s: string;
+begin
+  s := 'Hello, World!';
+end.`
+
+	l := lexer.New(input)
+	p := New(l)
+	prog := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	assign := prog.Main.Statements[0].(*ast.AssignStmt)
+	lit, ok := assign.Value.(*ast.StringLiteral)
+	if !ok {
+		t.Fatalf("expected StringLiteral, got %T", assign.Value)
+	}
+
+	if lit.Value != "Hello, World!" {
+		t.Fatalf("expected 'Hello, World!', got %q", lit.Value)
+	}
+}
+
+func TestParser_CharLiteral(t *testing.T) {
+	input := `program test;
+var c: char;
+begin
+  c := 'X';
+end.`
+
+	l := lexer.New(input)
+	p := New(l)
+	prog := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	assign := prog.Main.Statements[0].(*ast.AssignStmt)
+	lit, ok := assign.Value.(*ast.CharLiteral)
+	if !ok {
+		t.Fatalf("expected CharLiteral, got %T", assign.Value)
+	}
+
+	if lit.Value != 'X' {
+		t.Fatalf("expected 'X', got %c", lit.Value)
+	}
+}

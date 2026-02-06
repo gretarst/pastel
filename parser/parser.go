@@ -337,6 +337,32 @@ func (p *Parser) parsePrimary() ast.Expr {
 		p.nextToken()
 		return lit
 
+	case token.REAL_LIT:
+		val, _ := strconv.ParseFloat(p.curToken.Literal, 64)
+		lit := &ast.RealLiteral{Value: val}
+		p.nextToken()
+		return lit
+
+	case token.TRUE:
+		lit := &ast.BooleanLiteral{Value: true}
+		p.nextToken()
+		return lit
+
+	case token.FALSE:
+		lit := &ast.BooleanLiteral{Value: false}
+		p.nextToken()
+		return lit
+
+	case token.CHAR_LIT:
+		lit := &ast.CharLiteral{Value: rune(p.curToken.Literal[0])}
+		p.nextToken()
+		return lit
+
+	case token.STRING_LIT:
+		lit := &ast.StringLiteral{Value: p.curToken.Literal}
+		p.nextToken()
+		return lit
+
 	case token.IDENT:
 		ident := &ast.Identifier{Value: p.curToken.Literal}
 		p.nextToken()
@@ -382,16 +408,18 @@ func (p *Parser) parseVarDecl() ast.Stmt {
 	// Advance to the next token after ':'
 	p.nextToken()
 
-	if p.curToken.Type != token.INTEGER {
+	var varType string
+	switch p.curToken.Type {
+	case token.INTEGER, token.REAL, token.BOOLEAN, token.CHAR, token.STRING:
+		varType = p.curToken.Literal
+	default:
 		p.addError(
-			"Expected 'integer' type for variable",
+			"Expected type for variable",
 			fmt.Sprintf("Got %q (%s) instead.", p.curToken.Literal, p.curToken.Type),
-			"Currently, only 'integer' type is supported for variables.",
+			"Supported types are: integer, real, boolean, char, string.",
 		)
 		return nil
 	}
-
-	varType := p.curToken.Literal
 
 	// Advance to the next token after the type
 	p.nextToken()

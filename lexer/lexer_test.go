@@ -315,3 +315,153 @@ func TestNextToken_IllegalCharacter(t *testing.T) {
 		t.Fatalf("expected ILLEGAL token, got %q", tok.Type)
 	}
 }
+
+func TestNextToken_RealLiterals(t *testing.T) {
+	input := `3.14 0.5 123.456 42.0`
+
+	tests := []struct {
+		expectedType    token.TokenType
+		expectedLiteral string
+	}{
+		{token.REAL_LIT, "3.14"},
+		{token.REAL_LIT, "0.5"},
+		{token.REAL_LIT, "123.456"},
+		{token.REAL_LIT, "42.0"},
+		{token.EOF, ""},
+	}
+
+	l := New(input)
+
+	for i, tt := range tests {
+		tok := l.NextToken()
+
+		if tok.Type != tt.expectedType {
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
+				i, tt.expectedType, tok.Type)
+		}
+
+		if tok.Literal != tt.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
+				i, tt.expectedLiteral, tok.Literal)
+		}
+	}
+}
+
+func TestNextToken_StringAndCharLiterals(t *testing.T) {
+	input := `'a' 'hello' 'world' 'x'`
+
+	tests := []struct {
+		expectedType    token.TokenType
+		expectedLiteral string
+	}{
+		{token.CHAR_LIT, "a"},
+		{token.STRING_LIT, "hello"},
+		{token.STRING_LIT, "world"},
+		{token.CHAR_LIT, "x"},
+		{token.EOF, ""},
+	}
+
+	l := New(input)
+
+	for i, tt := range tests {
+		tok := l.NextToken()
+
+		if tok.Type != tt.expectedType {
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
+				i, tt.expectedType, tok.Type)
+		}
+
+		if tok.Literal != tt.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
+				i, tt.expectedLiteral, tok.Literal)
+		}
+	}
+}
+
+func TestNextToken_BooleanKeywords(t *testing.T) {
+	input := `true false TRUE FALSE True`
+
+	tests := []struct {
+		expectedType    token.TokenType
+		expectedLiteral string
+	}{
+		{token.TRUE, "true"},
+		{token.FALSE, "false"},
+		{token.TRUE, "true"},
+		{token.FALSE, "false"},
+		{token.TRUE, "true"},
+		{token.EOF, ""},
+	}
+
+	l := New(input)
+
+	for i, tt := range tests {
+		tok := l.NextToken()
+
+		if tok.Type != tt.expectedType {
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
+				i, tt.expectedType, tok.Type)
+		}
+
+		if tok.Literal != tt.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
+				i, tt.expectedLiteral, tok.Literal)
+		}
+	}
+}
+
+func TestNextToken_TypeKeywords(t *testing.T) {
+	input := `integer real boolean char string`
+
+	tests := []struct {
+		expectedType    token.TokenType
+		expectedLiteral string
+	}{
+		{token.INTEGER, "integer"},
+		{token.REAL, "real"},
+		{token.BOOLEAN, "boolean"},
+		{token.CHAR, "char"},
+		{token.STRING, "string"},
+		{token.EOF, ""},
+	}
+
+	l := New(input)
+
+	for i, tt := range tests {
+		tok := l.NextToken()
+
+		if tok.Type != tt.expectedType {
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
+				i, tt.expectedType, tok.Type)
+		}
+
+		if tok.Literal != tt.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
+				i, tt.expectedLiteral, tok.Literal)
+		}
+	}
+}
+
+func TestNextToken_IntegerNotReal(t *testing.T) {
+	input := `42.method`
+
+	l := New(input)
+
+	tok := l.NextToken()
+	if tok.Type != token.INT {
+		t.Fatalf("expected INT, got %q", tok.Type)
+	}
+	if tok.Literal != "42" {
+		t.Fatalf("expected '42', got %q", tok.Literal)
+	}
+
+	tok = l.NextToken()
+	if tok.Type != token.DOT {
+		t.Fatalf("expected DOT, got %q", tok.Type)
+	}
+
+	tok = l.NextToken()
+	if tok.Type != token.IDENT {
+		t.Fatalf("expected IDENT, got %q", tok.Type)
+	}
+}

@@ -294,6 +294,231 @@ end.`
 	}
 }
 
+func TestInterpreter_RealVariables(t *testing.T) {
+	input := `program test;
+var x: real;
+begin
+  x := 3.14;
+  writeln(x);
+end.`
+
+	output, err := runProgram(input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "3.14\n"
+	if output != expected {
+		t.Fatalf("output wrong. expected=%q, got=%q", expected, output)
+	}
+}
+
+func TestInterpreter_RealArithmetic(t *testing.T) {
+	input := `program test;
+var x: real;
+begin
+  x := 1.5 + 2.5;
+  writeln(x);
+end.`
+
+	output, err := runProgram(input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "4\n"
+	if output != expected {
+		t.Fatalf("output wrong. expected=%q, got=%q", expected, output)
+	}
+}
+
+func TestInterpreter_MixedIntegerReal(t *testing.T) {
+	input := `program test;
+var x: real;
+begin
+  x := 10 + 0.5;
+  writeln(x);
+end.`
+
+	output, err := runProgram(input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "10.5\n"
+	if output != expected {
+		t.Fatalf("output wrong. expected=%q, got=%q", expected, output)
+	}
+}
+
+func TestInterpreter_BooleanVariables(t *testing.T) {
+	input := `program test;
+var b: boolean;
+begin
+  b := true;
+  writeln(b);
+end.`
+
+	output, err := runProgram(input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "true\n"
+	if output != expected {
+		t.Fatalf("output wrong. expected=%q, got=%q", expected, output)
+	}
+}
+
+func TestInterpreter_BooleanFalse(t *testing.T) {
+	input := `program test;
+var b: boolean;
+begin
+  b := false;
+  writeln(b);
+end.`
+
+	output, err := runProgram(input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "false\n"
+	if output != expected {
+		t.Fatalf("output wrong. expected=%q, got=%q", expected, output)
+	}
+}
+
+func TestInterpreter_CharVariables(t *testing.T) {
+	input := `program test;
+var c: char;
+begin
+  c := 'A';
+  writeln(c);
+end.`
+
+	output, err := runProgram(input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "A\n"
+	if output != expected {
+		t.Fatalf("output wrong. expected=%q, got=%q", expected, output)
+	}
+}
+
+func TestInterpreter_StringVariables(t *testing.T) {
+	input := `program test;
+var s: string;
+begin
+  s := 'Hello, World!';
+  writeln(s);
+end.`
+
+	output, err := runProgram(input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "Hello, World!\n"
+	if output != expected {
+		t.Fatalf("output wrong. expected=%q, got=%q", expected, output)
+	}
+}
+
+func TestInterpreter_StringConcatenation(t *testing.T) {
+	input := `program test;
+var s: string;
+begin
+  s := 'Hello' + ' ' + 'World';
+  writeln(s);
+end.`
+
+	output, err := runProgram(input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "Hello World\n"
+	if output != expected {
+		t.Fatalf("output wrong. expected=%q, got=%q", expected, output)
+	}
+}
+
+func TestInterpreter_DefaultRealValue(t *testing.T) {
+	input := `program test;
+var x: real;
+begin
+  writeln(x);
+end.`
+
+	output, err := runProgram(input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "0\n"
+	if output != expected {
+		t.Fatalf("output wrong. expected=%q, got=%q", expected, output)
+	}
+}
+
+func TestInterpreter_DefaultBooleanValue(t *testing.T) {
+	input := `program test;
+var b: boolean;
+begin
+  writeln(b);
+end.`
+
+	output, err := runProgram(input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "false\n"
+	if output != expected {
+		t.Fatalf("output wrong. expected=%q, got=%q", expected, output)
+	}
+}
+
+func TestInterpreter_DefaultStringValue(t *testing.T) {
+	input := `program test;
+var s: string;
+begin
+  writeln(s);
+end.`
+
+	output, err := runProgram(input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "\n"
+	if output != expected {
+		t.Fatalf("output wrong. expected=%q, got=%q", expected, output)
+	}
+}
+
+func TestInterpreter_RealDivision(t *testing.T) {
+	input := `program test;
+var x: real;
+begin
+  x := 7.0 / 2.0;
+  writeln(x);
+end.`
+
+	output, err := runProgram(input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "3.5\n"
+	if output != expected {
+		t.Fatalf("output wrong. expected=%q, got=%q", expected, output)
+	}
+}
+
 // runProgram parses and executes a Pascal program, returning its output
 func runProgram(input string) (string, error) {
 	l := lexer.New(input)

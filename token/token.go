@@ -17,8 +17,11 @@ const (
 	EOF     = "EOF"
 
 	// Identifiers + literals
-	IDENT = "IDENT" // e.g., variable names
-	INT   = "INT"   // e.g., 123
+	IDENT      = "IDENT"      // e.g., variable names
+	INT        = "INT"        // e.g., 123
+	REAL_LIT   = "REAL_LIT"   // e.g., 3.14
+	CHAR_LIT   = "CHAR_LIT"   // e.g., 'a'
+	STRING_LIT = "STRING_LIT" // e.g., 'hello'
 
 	// Operators
 	ASSIGN = "ASSIGN" // :=
@@ -83,6 +86,14 @@ const (
 
 	// Types
 	INTEGER = "INTEGER"
+	REAL    = "REAL"
+	BOOLEAN = "BOOLEAN"
+	CHAR    = "CHAR"
+	STRING  = "STRING"
+
+	// Boolean literals
+	TRUE  = "TRUE"
+	FALSE = "FALSE"
 )
 
 var keywords = map[string]TokenType{
@@ -124,6 +135,12 @@ var keywords = map[string]TokenType{
 	"with":      WITH,
 	"writeln":   WRITELN,
 	"integer":   INTEGER,
+	"real":      REAL,
+	"boolean":   BOOLEAN,
+	"char":      CHAR,
+	"string":    STRING,
+	"true":      TRUE,
+	"false":     FALSE,
 }
 
 func LookupIdent(ident string) TokenType {
